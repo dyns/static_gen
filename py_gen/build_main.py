@@ -11,6 +11,8 @@ import markdown
 from jinja2 import Template
 from collections import defaultdict
 
+from . import partial_renderer
+
 def generate_archive_html(processed_posts, posts_slug):
     archive_html = ''
     buf = []
@@ -117,8 +119,9 @@ def do_build():
     head_include_html = load_file_string(os.path.join(partials_folder, 'head_include.html'))
     footer_html = load_file_string(os.path.join(partials_folder, 'footer.html'))
     header_html = load_file_string(os.path.join(partials_folder, 'header.html'))
+    topics_template = load_file_string(os.path.join(partials_folder, 'topic_list.html'))
 
-    partials = {'head_include':head_include_html, 'footer': footer_html, 'header': header_html}
+    partials = {'head_include':head_include_html, 'footer': footer_html, 'header': header_html, 'topics_template': topics_template}
 
     # create posts folder
     os.mkdir(posts_output_folder, mode=0o700)
@@ -141,9 +144,11 @@ def do_build():
     topics_html = format_topics_html(topic_anchor_tags)
     topics_html = ''.join(topics_html)
 
+    topic_list_html_jinja = partial_renderer.gen(topics_template, {'topic_data': zip(post_topics, topic_links), 'topic_links': topic_links, 'topic_names': post_topics})
+
     #inject achive_html to archive_template
     archive_html = generate_archive_html(processed_posts, posts_slug)
-    inject_data = {'topics': topics_html, 'content': archive_html, 'head_include': head_include_html, 'header':header_html, 'footer':footer_html, 'title':archive_out_title}
+    inject_data = {'topics': topic_list_html_jinja, 'content': archive_html, 'head_include': head_include_html, 'header':header_html, 'footer':footer_html, 'title':archive_out_title}
 
     template_inject(inject_data, archive_template_path,
          os.path.join(output_folder, archive_out_slug))
