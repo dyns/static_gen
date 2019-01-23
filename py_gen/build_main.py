@@ -13,13 +13,13 @@ from collections import defaultdict
 
 from . import partial_renderer
 
-def generate_archive_html(processed_posts, posts_slug):
+def generate_archive_html(processed_posts, posts_slug, post_previews):
     archive_html = ''
     buf = []
 
-    for post in processed_posts:
+    for post, preview in zip(processed_posts, post_previews):
         url = './' + posts_slug + '/'+ post[2]
-        p_html = '<p><h4><a href="{}">{}</a></h4>{}</p>'.format( url, post[0], '') #str(post[1]) 
+        p_html = '<div class="archiveEntry"><h3><a href="{}">{}</a></h3> {} <hr /> </div>'.format( url, post[0], preview) #str(post[1]) 
         buf.append(p_html)
 
     archive_html = '\n'.join(buf)
@@ -41,6 +41,7 @@ archive_out_slug = str(config['archive_out_slug'])
 archive_out_title = str(config['archive_out_title'])
 site_name = str(config['site_name'])
 topics_slug = str(config['topics_slug'])
+config_tabs = config['tabs']
 
 post_template_path = os.path.join(templates_folder, 'post_template.html')
 topic_template_path = os.path.join(templates_folder, 'topic_template.html')
@@ -121,19 +122,24 @@ def do_build():
     header_html = load_file_string(os.path.join(partials_folder, 'header.html'))
     topics_template = load_file_string(os.path.join(partials_folder, 'topic_list.html'))
 
+    # redner header with jinja with additional tabs in config
+    tabs = [('/a', 'a'), ('/b', 'b')]
+    header_html = partial_renderer.gen(header_html, {'tabs': config_tabs})
+
     partials = {'head_include':head_include_html, 'footer': footer_html, 'header': header_html, 'topics_template': topics_template}
 
     # create posts folder
     os.mkdir(posts_output_folder, mode=0o700)
     
     # inflate posts
-    (post_topics, processed_posts) = process_posts(DATE_FORMAT, posts_folder, posts_output_folder, post_template_path, partials)
+    (post_topics, processed_posts, post_previews) = process_posts(DATE_FORMAT, posts_folder, posts_output_folder, post_template_path, partials)
 
     # inflate pages
     process_pages(pages_folder, partials)
 
     # sort posts by date
-    processed_posts = sorted(processed_posts, key=lambda x: x[1], reverse=True)
+    zipped = sorted(zip(processed_posts, post_previews), key=lambda x: x[0][1], reverse=True)
+    processed_posts, post_previews = zip(*zipped)
 
     # generate topic pages links
     (topic_links, topic_anchor_tags) = generate_topic_pages_links(post_topics)
@@ -147,7 +153,7 @@ def do_build():
     topic_list_html_jinja = partial_renderer.gen(topics_template, {'topic_data': zip(post_topics, topic_links), 'topic_links': topic_links, 'topic_names': post_topics})
 
     #inject achive_html to archive_template
-    archive_html = generate_archive_html(processed_posts, posts_slug)
+    archive_html = generate_archive_html(processed_posts, posts_slug, post_previews)
     inject_data = {'topics': topic_list_html_jinja, 'content': archive_html, 'head_include': head_include_html, 'header':header_html, 'footer':footer_html, 'title':archive_out_title}
 
     template_inject(inject_data, archive_template_path,

@@ -10,6 +10,8 @@ import markdown
 from .template_injection import template_inject
 import re
 
+PREVIEW_CHARACTER_COUNT = 100
+
 def gen_youtube_embed(vid_id):
     text = '<iframe width="640" height="480" src="https://www.youtube-nocookie.com/embed/{}?rel=0" frameborder="0" allow="autoplay; encrypted-media" allowfullscreen></iframe>'
     return text.format(vid_id)
@@ -37,10 +39,60 @@ def youtube_pass(html):
                 html = html.replace(total, replacement)
     return html 
 
+def is_yaml_delimeter(line):
+    line = line.rstrip()
+    for c in line:
+        if c != '-':
+            return False
+    return True
+
+def parse_post_preview(post_html):
+    preview_lines = []
+    char_len = 0
+
+    for line in post_html.split('\n'):
+        preview_lines.append(line)
+        char_len += len(line)
+        if char_len >= PREVIEW_CHARACTER_COUNT:
+            break
+    return ''.join(preview_lines)
+
+
+def parse_post_preview_md(post_file):
+    post_file.seek(0)
+    yaml_delimeter = 0
+    preview_lines = []
+    character_count = 0
+
+    for line in post_file:
+        if yaml_delimeter < 2 :
+            if is_yaml_delimeter(line):
+                yaml_delimeter += 1
+        else:
+            preview_lines.append(line)
+            character_count += len(line)
+            if character_count >= PREVIEW_CHARACTER_COUNT:
+                break
+            '''
+            # copy line
+            line_len = len(line)
+            if (character_count + line_len) < PREVIEW_CHARACTER_COUNT:
+                preview_lines.append(line)
+                character_count += line_len
+            else:
+                chars_left = PREVIEW_CHARACTER_COUNT - character_count
+                preview_lines.append(line[0:chars_left])
+                break
+            '''
+
+    print(preview_lines)
+    return ''.join(preview_lines)
+
 
 
 def process_posts(date_format, posts_folder, posts_output_folder, archive_template_path, partials):
     processed_posts = []
+    post_previews = []
     all_topics = set()
     post_header_date_format = '%Y-%m-%d'
     # inflate markdown posts to html
@@ -52,6 +104,7 @@ def process_posts(date_format, posts_folder, posts_output_folder, archive_templa
 
             # todo - inject header info in post html - date and title
             (md_header_text, md_text) = split_md_text(md_file)
+
             md_file.close()
 
             title = None
@@ -91,7 +144,10 @@ def process_posts(date_format, posts_folder, posts_output_folder, archive_templa
 
                 print_date = date.strftime(date_format)
 
+                post_preview = parse_post_preview(post_html)
+
                 partials.update({'title': title, 'print_date':print_date, 'content': post_html})
+
                 '''
                 template_inject(partials,
                         archive_template_path,
@@ -104,12 +160,12 @@ def process_posts(date_format, posts_folder, posts_output_folder, archive_templa
                 #print('second', list(topics))
                 post_data = (title, date, post_file_name, topics)
                 processed_posts.append(post_data)
-
+                post_previews.append(post_preview)
             else:
                 error_text = 'post ignored: {} title: {} date: {}'.format(full_path, title, date)
                 raise ValueError(error_text)
     
-    return (all_topics, processed_posts)
+    return (all_topics, processed_posts, post_previews)
 
 
 
