@@ -15,7 +15,11 @@ setup (
                        'pyyaml',
                        'Jinja2',
                        'markdown',
-                        ]
+                        ],
+    package_data={
+      'py_gen.res': ['*']
+    },
 
+    include_package_data=True
 )
 
