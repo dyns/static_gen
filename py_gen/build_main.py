@@ -42,28 +42,6 @@ def jinja_template_inject(template_path, out_file_name, injects):
 
     my_write_string_to_file(out_file_name, rendered)
 
-def process_pages(pages_dir, injects):
-    for file_name in os.listdir(pages_dir):
-        if file_name.endswith('.md'):
-            full_path = os.path.join(pages_dir, file_name)
-            with open(full_path, 'r') as f:
-                new_name = file_name[:-3].replace(' ', '_') + '.html'
-                # convert md to html
-                html_content = markdown.markdown(f.read())
-                injects.update({'content':html_content, 'title': site_name})
-                out_path = os.path.join(output_folder, new_name)
-
-                if 'index' in full_path:
-                    jinja_template_inject(j_pages_template_path, out_path, injects)
-                    #template = Template(html_content)
-                    #s = template.render(**injects)
-                    #my_write_string_to_file(out_path, s)
-                else:
-                    template_inject(injects, 
-                        pages_template_path,
-                        out_path)
-    
-
 def load_file_string(name):
     contents = ''
     with open(name, 'r') as f:
@@ -77,7 +55,7 @@ def generate_topic_to_posts_table(processed_posts):
             topics_to_posts[topic].append((title, post_file_name))
     return topics_to_posts
 
-def generate_topic_pages_links(post_topics):
+def generate_topic_pages_links(topics_slug, post_topics):
     topic_slugs = [s.lower().replace(' ', '_') for s in post_topics]
     topic_links = ['{topics_slug}/{slug}.html'.format(topics_slug=topics_slug, slug=slug) for (slug, name) in zip(topic_slugs, post_topics)]
     topic_anchor_tags = ['<a href="/{topic_link}">{name}</a>'.format(topic_link=topic_link, name=name) for (topic_link, name) in zip(topic_links, post_topics)]
@@ -86,9 +64,8 @@ def generate_topic_pages_links(post_topics):
 def format_topics_html(topic_anchor_tags):
     return ['{l}<br />'.format(l=l) for l in topic_anchor_tags]
 
-def do_build(config_path):
-    config = load_config(config_path)
-
+def do_build(config):
+    
     DATE_FORMAT = str(config['post_date_display_format'])
 
     # generate paths via join with content root
@@ -138,6 +115,28 @@ def do_build(config_path):
     # inflate posts
     (post_topics, processed_posts, post_previews) = process_posts(DATE_FORMAT, posts_folder, posts_output_folder, post_template_path, partials)
 
+
+    def process_pages(pages_dir, injects):
+        for file_name in os.listdir(pages_dir):
+            if file_name.endswith('.md'):
+                full_path = os.path.join(pages_dir, file_name)
+                with open(full_path, 'r') as f:
+                    new_name = file_name[:-3].replace(' ', '_') + '.html'
+                    # convert md to html
+                    html_content = markdown.markdown(f.read())
+                    injects.update({'content':html_content, 'title': site_name})
+                    out_path = os.path.join(output_folder, new_name)
+
+                    if 'index' in full_path:
+                        jinja_template_inject(j_pages_template_path, out_path, injects)
+                        #template = Template(html_content)
+                        #s = template.render(**injects)
+                        #my_write_string_to_file(out_path, s)
+                    else:
+                        template_inject(injects, 
+                            pages_template_path,
+                            out_path)
+
     # inflate pages
     process_pages(pages_folder, partials)
 
@@ -146,7 +145,7 @@ def do_build(config_path):
     processed_posts, post_previews = zip(*zipped)
 
     # generate topic pages links
-    (topic_links, topic_anchor_tags) = generate_topic_pages_links(post_topics)
+    (topic_links, topic_anchor_tags) = generate_topic_pages_links(topics_slug, post_topics)
 
     # generate topic anchor tags for side bar
     topics_to_posts = generate_topic_to_posts_table(processed_posts)

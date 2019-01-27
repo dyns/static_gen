@@ -1,17 +1,12 @@
 
-config_folder: './content'
-
-posts_folder: 'posts'
-pages_folder: 'pages'
-static_folder: 'static'
-
-templates_folder: 'templates'
-partials_folder: 'partials'
+posts_folder: './content/posts'
+pages_folder: './content/pages'
+static_folder: './content/static'
+templates_folder: './content/templates'
+partials_folder: './content/partials'
 
 # https://docs.python.org/3.7/library/datetime.html#strftime-and-strptime-behavior
 post_date_display_format: '%b %d, %Y'
-
-
 
 output_folder: 'DONE_SITE'
 

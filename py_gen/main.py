@@ -28,7 +28,7 @@ def cli():
 
 @cli.command()
 @click.option('--path', 'config_path', default='./config.yaml', show_default=True)
-def generate_config(config_path):
+def default_config(config_path):
     config_path = os.path.abspath(config_path)
     path = Path(config_path)
     if path.exists():
@@ -36,6 +36,7 @@ def generate_config(config_path):
     else:
         write_default_config(config_path)
 
+'''
 # generate content folder based off of config
 @cli.command()
 @click.option('--config', 'config_path', default='./config.yaml', show_default=True)
@@ -60,17 +61,14 @@ def generate_content_dir(config_path):
     else:
         print("Content folder {} doesn't exist, please create root content directory.".format(content_path))
         sys.exit(1)
+'''
 
 @cli.command()
 @click.argument('title')
 @click.option('--config', 'config_path', default='./config.yaml', show_default=True)
 def new_post(title, config_path):
-
     config = load_config(config_path)
-
-    content_path = Path(config['config_folder'])
-    relative_posts_path = config['posts_folder']
-    posts_path = Path(os.path.join(content_path, relative_posts_path))
+    posts_path = Path(config['posts_folder'])
 
     # todo: actually format title for file name
     file_name = '{}.md'.format(title.strip().lower())
@@ -89,12 +87,16 @@ def new_post(title, config_path):
 
 
 @cli.command()
-def build():
-    do_build()
+@click.option('--config', 'config_path', default='./config.yaml', show_default=True)
+def build(config_path):
+    config = load_config(config_path)
+    do_build(config)
 
 @cli.command()
-def build_serve():
-    do_build()
+@click.option('--config', 'config_path', default='./config.yaml', show_default=True)
+def build_serve(config_path):
+    config = load_config(config_path)
+    do_build(config)
     output_folder = config['output_folder']
     subprocess.run('cd {output_folder} && python3 -m http.server'.format(output_folder=output_folder), shell=True, check=True)
 
