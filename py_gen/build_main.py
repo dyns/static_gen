@@ -6,7 +6,7 @@ import shutil
 import re
 from .template_injection import template_inject
 from .markdown_parser import split_md_text
-from .posts_processor import process_posts
+from .posts_processor import process_posts, get_post_topics
 import markdown
 from jinja2 import Template
 from collections import defaultdict
@@ -82,6 +82,7 @@ def do_build(config):
     topics_slug = str(config['topics_slug'])
     config_tabs = config['tabs']
 
+
     posts_output_folder = output_folder + '/' + posts_slug
     topics_output_folder = output_folder + '/' + topics_slug
 
@@ -90,6 +91,14 @@ def do_build(config):
     footer_html = load_file_string(os.path.join(partials_folder, 'footer.html'))
     header_html = load_file_string(os.path.join(partials_folder, 'header.html'))
     topics_template = load_file_string(os.path.join(partials_folder, 'topic_list.html'))
+
+    templates_html = []
+
+    for file in os.listdir(partials_folder):
+        html_text_r = load_file_string(os.path.join(partials_folder, file))
+        file = file.replace('.', '_')
+        templates_html.append((file, html_text_r))
+
 
     #load template paths
     post_template_path = os.path.join(templates_folder, 'post_template.html')
@@ -105,7 +114,7 @@ def do_build(config):
 
 
     # redner header with jinja with additional tabs in config
-    header_html = partial_renderer.gen(header_html, {'tabs': config_tabs})
+    header_html = partial_renderer.gen(header_html, {'tabs': config_tabs, 'site_name':site_name})
 
     partials = {'head_include':head_include_html, 'footer': footer_html, 'header': header_html, 'topics_template': topics_template}
 
@@ -124,7 +133,7 @@ def do_build(config):
                     new_name = file_name[:-3].replace(' ', '_') + '.html'
                     # convert md to html
                     html_content = markdown.markdown(f.read())
-                    injects.update({'content':html_content, 'title': site_name})
+                    injects.update({'content':html_content, 'title': site_name, 'site_name':site_name})
                     out_path = os.path.join(output_folder, new_name)
 
                     if 'index' in full_path:
@@ -142,7 +151,12 @@ def do_build(config):
 
     # sort posts by date
     zipped = sorted(zip(processed_posts, post_previews), key=lambda x: x[0][1], reverse=True)
-    processed_posts, post_previews = zip(*zipped)
+
+    if zipped:
+        processed_posts, post_previews = zip(*zipped)
+    else:
+        processed_posts = []
+        post_previews = []
 
     # generate topic pages links
     (topic_links, topic_anchor_tags) = generate_topic_pages_links(topics_slug, post_topics)
@@ -153,14 +167,24 @@ def do_build(config):
     topics_html = format_topics_html(topic_anchor_tags)
     topics_html = ''.join(topics_html)
 
-    topic_list_html_jinja = partial_renderer.gen(topics_template, {'topic_data': zip(post_topics, topic_links), 'topic_links': topic_links, 'topic_names': post_topics})
+    #topic_list_html_jinja = partial_renderer.gen(topics_template, {'topic_data': zip(post_topics, topic_links), 'topic_links': topic_links, 'topic_names': post_topics})
+
+    new_injects = {}
+    new_injects.update({'topic_data': zip(post_topics, topic_links), 'topic_links': topic_links, 'topic_names': post_topics})
+    new_injects.update({'tabs': config_tabs, 'site_name':site_name})
+    asd = [ (partial_name, partial_renderer.gen(partial_html, new_injects)) for (partial_name, partial_html) in templates_html]
+
 
     #inject achive_html to archive_template
     archive_html = generate_archive_html(processed_posts, posts_slug, post_previews)
-    inject_data = {'topics': topic_list_html_jinja, 'content': archive_html, 'head_include': head_include_html, 'header':header_html, 'footer':footer_html, 'title':archive_out_title}
+    inject_data = {'site_name':site_name, 'content': archive_html, 'head_include': head_include_html, 'header':header_html, 'footer':footer_html, 'title':archive_out_title}
+    inject_data.update(asd)
 
-    template_inject(inject_data, archive_template_path,
-         os.path.join(output_folder, archive_out_slug))
+    # archive template inflate
+    #template_inject(inject_data, archive_template_path,
+    #     os.path.join(output_folder, archive_out_slug))
+
+    jinja_template_inject(archive_template_path, os.path.join(output_folder, archive_out_slug), inject_data)
 
     # create topics folder
     os.mkdir(topics_output_folder, mode=0o700)
@@ -171,8 +195,6 @@ def do_build(config):
         topic_content = '<br />'.join(topic_content)
         inject_data.update({'content': topic_content, 'title': topic})
         template_inject(inject_data, topic_template_path, os.path.join(output_folder, topic_link))
-
-
 
 
 

@@ -16,14 +16,12 @@ topics_slug: 'topics'
 archive_out_title: 'Blog'
 archive_out_slug: 'blog.html'
 
-site_name: 'alexnotes.xyz'
+site_name: 'my_site'
 
 tabs:
   - - 'About'
     - '/'
-  - - 'Reading'
-    - '/reading.html'
   - - 'Blog'
     - '/blog.html'
-  - - 'Portfolio'
-    - '/portfolio.html'
+  - - 'example page'
+    - '/example_page.html'

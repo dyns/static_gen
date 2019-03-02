@@ -89,6 +89,36 @@ def parse_post_preview_md(post_file):
     return ''.join(preview_lines)
 
 
+def get_post_topics(posts_folder):
+    all_topics = set()
+    # inflate markdown posts to html
+    for file in os.listdir(posts_folder):
+        if file.endswith('.md'):
+            full_path = os.path.join(posts_folder, file)
+
+            md_file = open(full_path, 'r')
+
+            # todo - inject header info in post html - date and title
+            (md_header_text, md_text) = split_md_text(md_file)
+
+            md_file.close()
+
+            md_header = load(md_header_text)
+
+            topics = []
+
+            if md_header:
+                #print(md_header)
+                title = md_header['title']
+                if 'date' in md_header:
+                    date_text = md_header['date']
+                if 'topics' in md_header:
+                    topics = md_header['topics']
+                    topics = [s.title() for s in topics]
+
+            all_topics.update(topics)
+    
+    return all_topics
 
 def process_posts(date_format, posts_folder, posts_output_folder, archive_template_path, partials):
     processed_posts = []
