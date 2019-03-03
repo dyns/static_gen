@@ -32,10 +32,7 @@ activate the virtual env
 	my_gen new-post post_title --config config_path [default: ./config.yaml]
 	```
 
-7) execute generator with config as parameter:
-	my_gen build-serve --config config_path [default: ./config.yaml]
-
-8) create a page by adding a page_name.md file to the pages directory, default is the content/pages directory.
+7) create a page by adding a page_name.md file to the pages directory, default is the content/pages directory.
 The page will be available at my_site.com/my_page_name.html
 Add the page to navigation bar as a tab: in the config tabs add the name then the url:
 	```
@@ -50,6 +47,8 @@ Add the page to navigation bar as a tab: in the config tabs add the name then th
 	```
 
 There is an archive_template, pages_template, post_template.html, post_template.md which is injected to the post_template.html, and topic_template. In html templates, you can inject partials using the {{ partial_name }} syntax. You must place the partials in the partials folder defined in the config. 
+
+Adding content to the static directory makes it available at the root. In the static directory there are css files and javascript files.
 
 You can push the generated site to a static hosting service or a service like github for github pages.
 

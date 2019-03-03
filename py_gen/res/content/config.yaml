@@ -1,0 +1,27 @@
+
+posts_folder: './content/posts'
+pages_folder: './content/pages'
+static_folder: './content/static'
+templates_folder: './content/templates'
+partials_folder: './content/partials'
+
+# https://docs.python.org/3.7/library/datetime.html#strftime-and-strptime-behavior
+post_date_display_format: '%b %d, %Y'
+
+output_folder: 'DONE_SITE'
+
+posts_slug: 'posts'
+topics_slug: 'topics'
+
+archive_out_title: 'Blog'
+archive_out_slug: 'blog.html'
+
+site_name: 'my_site'
+
+tabs:
+  - - 'About'
+    - '/'
+  - - 'Blog'
+    - '/blog.html'
+  - - 'example page'
+    - '/example_page.html'

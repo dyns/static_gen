@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>{{title}}</title>
+        {{ head_include_html }}
+    </head>
+    <body>
+
+        <div class="pure-g">
+            <div class="pure-u-1-24 pure-u-md-1-5"></div>
+            <div class="pure-u-22-24 pure-u-md-3-5">
+                {{header_html}}
+                <button id="themeBtn">Dark</button>
+                <div class="content">
+                    <div class="pure-g">
+                        <div class="pure-u-3-5">
+                            <h1>{{archive_out_title}}</h1>
+                            {{   archive_content  }}
+                        </div>
+                        <div class="pure-u-2-5">
+                            <h3>Topics:</h3>
+                            {{ topic_list_html }}
+                        </div>
+                    </div>
+                </div>
+                {{footer}}
+            </div>
+            <div class="pure-u-1-24 pure-u-md-1-5"></div>
+        </div>
+
+
+    </body>
+</html>
