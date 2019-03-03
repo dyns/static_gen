@@ -28,7 +28,7 @@ def cli():
 
 @cli.command()
 @click.option('--path', 'config_path', default='./config.yaml', show_default=True)
-def default_config(config_path):
+def copy_default_config(config_path):
     config_path = os.path.abspath(config_path)
     path = Path(config_path)
     if path.exists():
