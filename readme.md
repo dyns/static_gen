@@ -48,6 +48,7 @@ other features
 ------
 
 todo:
+
 inflate html by attemping to inflate a template, reading all depdencies, generating DAG if possible, walking through graph and inflating template to html, inflate all the way down to main entry. Cache where possible, and continue until all templates are inflated.
 
 move the generation logic out of the generator itself and into the templates. So the archive_template.html could have embeded python: 

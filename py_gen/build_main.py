@@ -101,14 +101,6 @@ def do_build(config):
     posts_output_folder = output_folder + '/' + posts_slug
     topics_output_folder = output_folder + '/' + topics_slug
 
-    '''
-    #load all files in html partials
-    head_include_html = load_file_string(os.path.join(partials_folder, 'head_include.html'))
-    footer_html = load_file_string(os.path.join(partials_folder, 'footer.html'))
-    header_html = load_file_string(os.path.join(partials_folder, 'header.html'))
-    topics_template = load_file_string(os.path.join(partials_folder, 'topic_list.html'))
-    '''
-
     #load template paths
     post_template_path = os.path.join(templates_folder, 'post_template.html')
     topic_template_path = os.path.join(templates_folder, 'topic_template.html')
@@ -120,10 +112,6 @@ def do_build(config):
     #shutil.copytree(src, dst, symlinks=False, ignore=None, copy_function=copy2, ignore_dangling_symlinks=False)
     shutil.rmtree(output_folder, ignore_errors=True, onerror=None)
     shutil.copytree(static_folder, output_folder, symlinks=False, ignore=None, copy_function=shutil.copy, ignore_dangling_symlinks=False)
-
-
-    # redner header with jinja with additional tabs in config
-    #header_html = partial_renderer.gen(header_html, {'tabs': config_tabs, 'site_name':site_name})
 
     # create posts folder
     os.mkdir(posts_output_folder, mode=0o700)
@@ -138,7 +126,6 @@ def do_build(config):
     # inflate posts
     (post_topics, processed_posts, post_previews) = process_posts(DATE_FORMAT, posts_folder, posts_output_folder, post_template_path, partials)
 
-
     def process_pages(pages_dir, injects):
         for file_name in os.listdir(pages_dir):
             if file_name.endswith('.md'):
@@ -152,9 +139,6 @@ def do_build(config):
 
                     if 'index' in full_path:
                         jinja_template_inject(j_pages_template_path, out_path, injects)
-                        #template = Template(html_content)
-                        #s = template.render(**injects)
-                        #my_write_string_to_file(out_path, s)
                     else:
                         template_inject(injects, 
                             pages_template_path,
@@ -177,8 +161,7 @@ def do_build(config):
 
     #inject achive_html to archive_template
     archive_html = generate_archive_html(processed_posts, posts_slug, post_previews)
-    # 'head_include': head_include_html, 'header':header_html, 'footer':footer_html,
-    inject_data = {'site_name':site_name, 'content': archive_html, 'title':archive_out_title}
+    inject_data = {'site_name':site_name, 'archive_content': archive_html, 'archive_out_title':archive_out_title}
     inject_data.update(partials)
 
     jinja_template_inject(archive_template_path, os.path.join(output_folder, archive_out_slug), inject_data)
