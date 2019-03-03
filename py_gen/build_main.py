@@ -10,6 +10,7 @@ from .posts_processor import process_posts, get_post_topics
 import markdown
 from jinja2 import Template
 from collections import defaultdict
+from distutils.dir_util import copy_tree
 
 from .file_sys import load_config
 
@@ -83,12 +84,18 @@ def do_build(config):
     
     DATE_FORMAT = str(config['post_date_display_format'])
 
+    # format theme paths
+    theme_root = str(config['theme_root'])
+
+    templates_folder = os.path.join(theme_root, 'templates') #str(config['templates_folder'])
+    partials_folder = os.path.join(theme_root, 'partials') #str(config['partials_folder'])
+    theme_static_folder = os.path.join(theme_root, 'static') #config['theme_static_folder']
+
     # generate paths via join with content root
     posts_folder = str(config['posts_folder'])
     pages_folder = str(config['pages_folder'])
     static_folder = str(config['static_folder'])
-    templates_folder = str(config['templates_folder'])
-    partials_folder = str(config['partials_folder'])
+
     output_folder = str(config['output_folder'])
     posts_slug = str(config['posts_slug'])
     archive_out_slug = str(config['archive_out_slug'])
@@ -96,6 +103,8 @@ def do_build(config):
     site_name = str(config['site_name'])
     topics_slug = str(config['topics_slug'])
     config_tabs = config['tabs']
+
+   
 
 
     posts_output_folder = output_folder + '/' + posts_slug
@@ -108,10 +117,13 @@ def do_build(config):
     pages_template_path = os.path.join(templates_folder, 'pages_template.html')
     j_pages_template_path = os.path.join(templates_folder, 'pages_template.html')
 
-    # load static files first
+    # load static theme files first
     #shutil.copytree(src, dst, symlinks=False, ignore=None, copy_function=copy2, ignore_dangling_symlinks=False)
     shutil.rmtree(output_folder, ignore_errors=True, onerror=None)
-    shutil.copytree(static_folder, output_folder, symlinks=False, ignore=None, copy_function=shutil.copy, ignore_dangling_symlinks=False)
+    shutil.copytree(theme_static_folder, output_folder, symlinks=False, ignore=None, copy_function=shutil.copy, ignore_dangling_symlinks=False)
+
+    # copy user static files
+    copy_tree(static_folder, output_folder)
 
     # create posts folder
     os.mkdir(posts_output_folder, mode=0o700)
