@@ -12,13 +12,28 @@ import re
 
 PREVIEW_CHARACTER_COUNT = 100
 
+iframe_div_style = '''
+position: relative;
+    overflow: hidden;
+    padding-top: 56.25%;
+'''
+
+iframe_style = '''
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    border: 0;
+    '''
+
 def gen_youtube_embed(vid_id):
-    text = '<iframe width="640" height="480" src="https://www.youtube-nocookie.com/embed/{}?rel=0" frameborder="0" allow="autoplay; encrypted-media" allowfullscreen></iframe>'
-    return text.format(vid_id)
+    text = '<div style="{}"> <iframe width="640" height="480" style="{}" src="https://www.youtube-nocookie.com/embed/{}?rel=0" frameborder="0" allow="autoplay; encrypted-media" allowfullscreen></iframe></div>'
+    return text.format(iframe_div_style,iframe_style, vid_id)
 
 def gen_vimeo_embed(vid_id):
-    text = '<iframe src="https://player.vimeo.com/video/{}?color=1fc9a2&portrait=0" width="640" height="360" frameborder="0" webkitallowfullscreen mozallowfullscreen allowfullscreen></iframe>'
-    return text.format(vid_id)
+    text = '<div style="{}"> <iframe src="https://player.vimeo.com/video/{}?color=1fc9a2&portrait=0" width="640" height="360" frameborder="0" style="{}" webkitallowfullscreen mozallowfullscreen allowfullscreen></iframe></div>'
+    return text.format(iframe_div_style, vid_id, iframe_style)
 
 def youtube_pass(html):
     #{{&lt; youtube qbzSxZ5HkjM &gt;}}
