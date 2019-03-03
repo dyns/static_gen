@@ -46,7 +46,7 @@ def is_yaml_delimeter(line):
             return False
     return True
 
-def parse_post_preview(post_html):
+def parse_post_preview_old(post_html):
     preview_lines = []
     char_len = 0
 
@@ -57,8 +57,16 @@ def parse_post_preview(post_html):
             break
     return ''.join(preview_lines)
 
+END_PREVIEW_DELIMETER = '[END_PREVIEW]'
 
-def parse_post_preview_md(post_file):
+def parse_post_preview(post_html):
+    if END_PREVIEW_DELIMETER in post_html:
+        preview_text = post_html.split(END_PREVIEW_DELIMETER, 1)
+        return preview_text[0]
+    else:
+        return ''
+
+def parse_post_preview_md_old(post_file):
     post_file.seek(0)
     yaml_delimeter = 0
     preview_lines = []
@@ -85,7 +93,7 @@ def parse_post_preview_md(post_file):
                 break
             '''
 
-    print(preview_lines)
+    #print(preview_lines)
     return ''.join(preview_lines)
 
 
@@ -168,6 +176,7 @@ def process_posts(date_format, posts_folder, posts_output_folder, archive_templa
 
                 post_file_name = title.lower().replace(' ', '_') +'.html'
                 html_file_name = os.path.join(posts_output_folder, post_file_name)
+
                 post_html = markdown.markdown(text=md_text)
 
                 post_html = youtube_pass(post_html) 
@@ -175,6 +184,8 @@ def process_posts(date_format, posts_folder, posts_output_folder, archive_templa
                 print_date = date.strftime(date_format)
 
                 post_preview = parse_post_preview(post_html)
+
+                post_html = post_html.replace(END_PREVIEW_DELIMETER, '')
 
                 partials.update({'title': title, 'print_date':print_date, 'content': post_html})
 

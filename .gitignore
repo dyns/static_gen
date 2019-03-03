@@ -1,3 +1,6 @@
+#vs code
+.vscode
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
@@ -138,5 +141,3 @@ tags
 ### Mac ignore
 # General
 .DS_Store
-
-
