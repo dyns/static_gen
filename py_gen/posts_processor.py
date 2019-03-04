@@ -172,6 +172,8 @@ def process_posts(date_format, posts_folder, posts_output_folder, post_template,
 
             post_to_topics = {}
 
+            is_draft = None
+
             if md_header:
                 #print(md_header)
                 title = md_header['title']
@@ -180,6 +182,8 @@ def process_posts(date_format, posts_folder, posts_output_folder, post_template,
                 if 'topics' in md_header:
                     topics = md_header['topics']
                     topics = [s.title() for s in topics]
+                if 'draft' in md_header and type(md_header['draft']) == bool:
+                    is_draft = md_header['draft']
 
             if date_text:
                 try:
@@ -187,46 +191,42 @@ def process_posts(date_format, posts_folder, posts_output_folder, post_template,
                 except ValueError:
                     pass
 
-            if title and date and topics is not None:
-               
-                all_topics.update(topics)
+            if title and date and topics is not None and is_draft is not None:
+                if is_draft is False:
 
-                post_file_name = title.lower().replace(' ', '_') +'.html'
-                html_file_name = os.path.join(posts_output_folder, post_file_name)
+                    all_topics.update(topics)
 
-                post_html = markdown.markdown(text=md_text)
+                    post_file_name = title.lower().replace(' ', '_') +'.html'
+                    html_file_name = os.path.join(posts_output_folder, post_file_name)
 
-                post_html = youtube_pass(post_html) 
+                    post_html = markdown.markdown(text=md_text)
 
-                print_date = date.strftime(date_format)
+                    post_html = youtube_pass(post_html) 
 
-                post_preview = parse_post_preview(post_html)
+                    print_date = date.strftime(date_format)
 
-                post_html = post_html.replace(END_PREVIEW_DELIMETER, '')
+                    post_preview = parse_post_preview(post_html)
 
-                topics = sorted(topics)
+                    post_html = post_html.replace(END_PREVIEW_DELIMETER, '')
+
+                    topics = sorted(topics)
                 
-                (_, topic_anchor_tags) = generate_topic_pages_links(topics_slug, topics)
+                    (_, topic_anchor_tags) = generate_topic_pages_links(topics_slug, topics)
 
-                formatted_topics = ', '.join(topic_anchor_tags)
+                    formatted_topics = ', '.join(topic_anchor_tags)
 
-                partials.update({'title': title, 'print_date':print_date, 'content': post_html, 'topics': formatted_topics, 'disqus_embed': disqus_embed})
+                    partials.update({'title': title, 'print_date':print_date, 'content': post_html, 'topics': formatted_topics, 'disqus_embed': disqus_embed})
 
-                '''
-                template_inject(partials,
-                        archive_template_path,
-                        html_file_name)
-                '''
+                    jinja_template_inject(post_template, html_file_name, partials)
 
-                jinja_template_inject(post_template, html_file_name, partials)
+                    # add to list
+                    #print('second', list(topics))
+                    post_data = (title, date, post_file_name, topics)
+                    processed_posts.append(post_data)
+                    post_previews.append(post_preview)
 
-                # add to list
-                #print('second', list(topics))
-                post_data = (title, date, post_file_name, topics)
-                processed_posts.append(post_data)
-                post_previews.append(post_preview)
             else:
-                error_text = 'post ignored: {} title: {} date: {}'.format(full_path, title, date)
+                error_text = 'post ignored: {} title: {} date: {} draft: {}'.format(full_path, title, date, is_draft)
                 raise ValueError(error_text)
     
     return (all_topics, processed_posts, post_previews)
