@@ -49,11 +49,11 @@ def load_file_string(name):
         contents = f.read()
     return contents
 
-def generate_topic_to_posts_table(processed_posts):
+def generate_topic_to_posts_table(processed_posts, post_previews):
     topics_to_posts = defaultdict(list)
-    for (title,_,post_file_name,topics_of_post) in processed_posts:
+    for ((title,_,post_file_name,topics_of_post), post_preview) in zip(processed_posts, post_previews):
         for topic in topics_of_post:
-            topics_to_posts[topic].append((title, post_file_name))
+            topics_to_posts[topic].append((title, post_file_name, post_preview))
     return topics_to_posts
 
 def generate_topic_pages_links(topics_slug, post_topics):
@@ -138,7 +138,7 @@ def do_build(config):
 
     # generate topic pages links
     (topic_links, topic_anchor_tags) = generate_topic_pages_links(topics_slug, post_topics)
-    print('anchor tags', topic_links)
+    #print('anchor tags', topic_links)
     
     partials = inflate_partials(partials_folder, post_topics, topic_links, config_tabs, site_name, google_analytics_id)
 
@@ -169,15 +169,6 @@ def do_build(config):
                         #os.mkdir(new_folder_path, mode=0o700)
 
                     jinja_template_inject(j_pages_template_path, out_path, injects)
-                    
-                    '''
-                    if 'index' in full_path:
-                        jinja_template_inject(j_pages_template_path, out_path, injects)
-                    else:
-                        template_inject(injects, 
-                            pages_template_path,
-                            out_path)
-                    '''
 
     # inflate pages
     process_pages(pages_folder, partials)
@@ -192,7 +183,7 @@ def do_build(config):
         post_previews = []
 
     # generate topic anchor tags for side bar
-    topics_to_posts = generate_topic_to_posts_table(processed_posts)
+    topics_to_posts = generate_topic_to_posts_table(processed_posts, post_previews)
 
     #inject achive_html to archive_template
     archive_html = generate_archive_html(processed_posts, posts_slug, post_previews)
@@ -207,12 +198,11 @@ def do_build(config):
 
     # inflate topic pages
     for (topic, topic_link) in zip(post_topics, topic_links):
-        topic_content = ['<a href="/{posts_slug}/{post_slug}">{post_name}</a>'.format(posts_slug=posts_slug, post_slug=post_slug,post_name=post_name) for (post_name, post_slug) in topics_to_posts[topic]]
-        topic_content = '<br />'.join(topic_content)
+        #p_html = '<div class="archiveEntry"><h3><a href="/{posts_slug}/{post_slug}">{post_name}</a></h3> {} <hr /> </div>'.format( url, post[0], preview) #str(post[1]) 
+        #topic_content = ['<a href="/{posts_slug}/{post_slug}">{post_name}</a>'.format(posts_slug=posts_slug, post_slug=post_slug,post_name=post_name) for (post_name, post_slug, post_preview) in topics_to_posts[topic]]
+        topic_content = ['<div class="archiveEntry"><h3><a href="/{posts_slug}/{post_slug}">{post_name}</a></h3> {preview} <hr /> </div>'.format(posts_slug=posts_slug, post_slug=post_slug,post_name=post_name, preview=post_preview) for (post_name, post_slug, post_preview) in topics_to_posts[topic]]
+        topic_content = '\n'.join(topic_content)
         inject_data.update({'content': topic_content, 'title': topic})
-       
-        print(topic_link)
-
         topic_page_path = create_page_as_folder(output_folder, topic_link)
         template_inject(inject_data, topic_template_path, topic_page_path)
 
