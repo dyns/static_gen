@@ -145,7 +145,7 @@ def get_post_topics(posts_folder):
     
     return all_topics
 
-def process_posts(date_format, posts_folder, posts_output_folder, post_template, partials, topics_slug):
+def process_posts(date_format, posts_folder, posts_output_folder, post_template, partials, topics_slug, disqus_embed):
     processed_posts = []
     post_previews = []
     all_topics = set()
@@ -204,11 +204,13 @@ def process_posts(date_format, posts_folder, posts_output_folder, post_template,
 
                 post_html = post_html.replace(END_PREVIEW_DELIMETER, '')
 
+                topics = sorted(topics)
+                
                 (_, topic_anchor_tags) = generate_topic_pages_links(topics_slug, topics)
 
                 formatted_topics = ', '.join(topic_anchor_tags)
 
-                partials.update({'title': title, 'print_date':print_date, 'content': post_html, 'topics': formatted_topics})
+                partials.update({'title': title, 'print_date':print_date, 'content': post_html, 'topics': formatted_topics, 'disqus_embed': disqus_embed})
 
                 '''
                 template_inject(partials,

@@ -112,6 +112,8 @@ def do_build(config):
     topics_slug = str(config['topics_slug'])
     config_tabs = config['tabs']
 
+    disqus_embed = config['disqus_embed']
+
     google_analytics_id = config['google_analytics_id']
    
     posts_output_folder = output_folder + '/' + posts_slug
@@ -123,6 +125,7 @@ def do_build(config):
     archive_template_path = os.path.join(templates_folder, 'archive_template.html')
     pages_template_path = os.path.join(templates_folder, 'pages_template.html')
     j_pages_template_path = os.path.join(templates_folder, 'pages_template.html')
+
 
     # load static theme files first
     #shutil.copytree(src, dst, symlinks=False, ignore=None, copy_function=copy2, ignore_dangling_symlinks=False)
@@ -136,15 +139,15 @@ def do_build(config):
     os.mkdir(posts_output_folder, mode=0o700)
     
     post_topics = get_post_topics(posts_folder)
+    post_topics = sorted(post_topics)
 
     # generate topic pages links
     (topic_links, topic_anchor_tags) = generate_topic_pages_links(topics_slug, post_topics)
-    #print('anchor tags', topic_links)
     
     partials = inflate_partials(partials_folder, post_topics, topic_links, config_tabs, site_name, google_analytics_id)
 
     # inflate posts
-    (post_topics, processed_posts, post_previews) = process_posts(DATE_FORMAT, posts_folder, posts_output_folder, post_template_path, partials, topics_slug)
+    (post_topics, processed_posts, post_previews) = process_posts(DATE_FORMAT, posts_folder, posts_output_folder, post_template_path, partials, topics_slug, disqus_embed)
 
     def process_pages(pages_dir, injects):
         for file_name in os.listdir(pages_dir):
