@@ -11,6 +11,7 @@ import markdown
 from jinja2 import Template
 from collections import defaultdict
 from distutils.dir_util import copy_tree
+from .topic_formater import generate_topic_pages_links
 
 from .file_sys import load_config
 
@@ -56,7 +57,7 @@ def generate_topic_to_posts_table(processed_posts, post_previews):
             topics_to_posts[topic].append((title, post_file_name, post_preview))
     return topics_to_posts
 
-def generate_topic_pages_links(topics_slug, post_topics):
+def generate_topic_pages_links_old(topics_slug, post_topics):
     topic_slugs = [s.lower().replace(' ', '_') for s in post_topics]
     topic_links = ['{topics_slug}/{slug}'.format(topics_slug=topics_slug, slug=slug) for (slug, name) in zip(topic_slugs, post_topics)]
     topic_anchor_tags = ['<a href="/{topic_link}">{name}</a>'.format(topic_link=topic_link, name=name) for (topic_link, name) in zip(topic_links, post_topics)]
@@ -143,7 +144,7 @@ def do_build(config):
     partials = inflate_partials(partials_folder, post_topics, topic_links, config_tabs, site_name, google_analytics_id)
 
     # inflate posts
-    (post_topics, processed_posts, post_previews) = process_posts(DATE_FORMAT, posts_folder, posts_output_folder, post_template_path, partials)
+    (post_topics, processed_posts, post_previews) = process_posts(DATE_FORMAT, posts_folder, posts_output_folder, post_template_path, partials, topics_slug)
 
     def process_pages(pages_dir, injects):
         for file_name in os.listdir(pages_dir):

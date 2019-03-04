@@ -9,6 +9,8 @@ from yaml import load
 import markdown
 from .template_injection import template_inject
 import re
+from .topic_formater import generate_topic_pages_links
+
 
 PREVIEW_CHARACTER_COUNT = 100
 
@@ -143,7 +145,7 @@ def get_post_topics(posts_folder):
     
     return all_topics
 
-def process_posts(date_format, posts_folder, posts_output_folder, archive_template_path, partials):
+def process_posts(date_format, posts_folder, posts_output_folder, post_template, partials, topics_slug):
     processed_posts = []
     post_previews = []
     all_topics = set()
@@ -202,7 +204,11 @@ def process_posts(date_format, posts_folder, posts_output_folder, archive_templa
 
                 post_html = post_html.replace(END_PREVIEW_DELIMETER, '')
 
-                partials.update({'title': title, 'print_date':print_date, 'content': post_html})
+                (_, topic_anchor_tags) = generate_topic_pages_links(topics_slug, topics)
+
+                formatted_topics = ', '.join(topic_anchor_tags)
+
+                partials.update({'title': title, 'print_date':print_date, 'content': post_html, 'topics': formatted_topics})
 
                 '''
                 template_inject(partials,
@@ -210,7 +216,7 @@ def process_posts(date_format, posts_folder, posts_output_folder, archive_templa
                         html_file_name)
                 '''
 
-                jinja_template_inject(archive_template_path, html_file_name, partials)
+                jinja_template_inject(post_template, html_file_name, partials)
 
                 # add to list
                 #print('second', list(topics))
