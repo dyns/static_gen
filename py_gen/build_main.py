@@ -88,6 +88,33 @@ def create_page_as_folder(output_folder, page_title):
     os.mkdir(new_folder_path, mode=0o700)
     return new_file_path
 
+
+def clean_output_folder(output_path, build_retain_paths):
+    '''
+    Create the output folder if needed.
+    Remove all files and folders in output folder except for paths named in build_retain_paths in config
+    Currently only checks for ignores at top level
+    '''
+    output_path_abs = os.path.abspath(output_path)
+
+    # create output folder if needed
+    if os.path.isdir(output_path_abs) is False:
+        os.mkdir(output_path_abs, mode=0o700)
+
+    for file_name in os.listdir(output_path_abs):
+        abs_path = os.path.join(output_path_abs, file_name)
+        if os.path.isdir(abs_path):
+            #print('to delete dir: ', abs_path)
+            shutil.rmtree(abs_path, ignore_errors=True, onerror=None)
+        else:
+            if file_name not in build_retain_paths:
+                #print('to delete file: ', abs_path)
+                os.remove(abs_path)
+            else:
+                pass
+                #print('ignore delete: ', abs_path)
+    
+
 def do_build(config):
     
     DATE_FORMAT = str(config['post_date_display_format'])
@@ -126,12 +153,15 @@ def do_build(config):
     pages_template_path = os.path.join(templates_folder, 'pages_template.html')
     j_pages_template_path = os.path.join(templates_folder, 'pages_template.html')
 
+    build_retain_paths = config['build_retain_paths']
+    #print(build_retain_paths)
 
     # load static theme files first
     #shutil.copytree(src, dst, symlinks=False, ignore=None, copy_function=copy2, ignore_dangling_symlinks=False)
-    shutil.rmtree(output_folder, ignore_errors=True, onerror=None)
-    shutil.copytree(theme_static_folder, output_folder, symlinks=False, ignore=None, copy_function=shutil.copy, ignore_dangling_symlinks=False)
+    clean_output_folder(output_folder, build_retain_paths)
 
+    #shutil.copytree(theme_static_folder, output_folder, symlinks=False, ignore=None, copy_function=shutil.copy, ignore_dangling_symlinks=False)
+    copy_tree(theme_static_folder, output_folder)
     # copy user static files
     copy_tree(static_folder, output_folder)
 
